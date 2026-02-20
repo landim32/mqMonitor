@@ -1,0 +1,74 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: mqmonitor-rabbitmq
+    ports:
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:16
+    container_name: mqmonitor-postgres
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  monitor:
+    build:
+      context: .
+      dockerfile: src/Test.Monitor/Dockerfile
+    container_name: mqmonitor-api
+    ports:
+      - "${MONITOR_API_PORT}:8080"
+    environment:
+      ConnectionStrings__MonitorDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: ${RABBITMQ_DEFAULT_USER}
+      RabbitMq__Password: ${RABBITMQ_DEFAULT_PASS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/Test.Worker/Dockerfile
+    container_name: mqmonitor-worker
+    environment:
+      RabbitMq__HostName: rabbitmq
+      RabbitMq__Port: 5672
+      RabbitMq__UserName: ${RABBITMQ_DEFAULT_USER}
+      RabbitMq__Password: ${RABBITMQ_DEFAULT_PASS}
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  rabbitmq_data:
+  postgres_data:

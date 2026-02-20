@@ -1,0 +1,36 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.vs/
+.vscode/
+
+## Build
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+publish/
+
+## NuGet
+*.nupkg
+**/packages/*
+*.nuget.props
+*.nuget.targets
+
+## IDE
+.idea/
+*.sln.iml
+*.swp
+*~
+
+## OS
+.DS_Store
+Thumbs.db
+
+## Environment
+.env
+*.local
