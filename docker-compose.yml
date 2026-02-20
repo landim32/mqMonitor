@@ -5,11 +5,11 @@ services:
     image: rabbitmq:3-management
     container_name: mqmonitor-rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "${RABBITMQ_PORT}:5672"
+      - "${RABBITMQ_MANAGEMENT_PORT}:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: guest
-      RABBITMQ_DEFAULT_PASS: guest
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
     healthcheck:
@@ -22,15 +22,15 @@ services:
     image: postgres:16
     container_name: mqmonitor-postgres
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT}:5432"
     environment:
-      POSTGRES_DB: test_monitor
-      POSTGRES_USER: monitor
-      POSTGRES_PASSWORD: monitor123
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U monitor -d test_monitor"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -41,14 +41,14 @@ services:
       dockerfile: src/Test.Monitor/Dockerfile
     container_name: mqmonitor-api
     ports:
-      - "5000:8080"
+      - "${MONITOR_API_PORT}:8080"
     environment:
-      ConnectionStrings__MonitorDb: "Host=postgres;Port=5432;Database=test_monitor;Username=monitor;Password=monitor123"
+      ConnectionStrings__MonitorDb: "Host=postgres;Port=5432;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       RabbitMq__HostName: rabbitmq
       RabbitMq__Port: 5672
-      RabbitMq__UserName: guest
-      RabbitMq__Password: guest
-      ASPNETCORE_ENVIRONMENT: Development
+      RabbitMq__UserName: ${RABBITMQ_DEFAULT_USER}
+      RabbitMq__Password: ${RABBITMQ_DEFAULT_PASS}
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -63,8 +63,8 @@ services:
     environment:
       RabbitMq__HostName: rabbitmq
       RabbitMq__Port: 5672
-      RabbitMq__UserName: guest
-      RabbitMq__Password: guest
+      RabbitMq__UserName: ${RABBITMQ_DEFAULT_USER}
+      RabbitMq__Password: ${RABBITMQ_DEFAULT_PASS}
     depends_on:
       rabbitmq:
         condition: service_healthy
