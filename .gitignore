@@ -31,6 +31,10 @@ publish/
 .DS_Store
 Thumbs.db
 
+## Node / Frontend
+node_modules/
+mqmonitor-app/dist/
+
 ## Environment
 .env
 *.local

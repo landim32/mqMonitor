@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(powershell -Command:*)",
+      "Skill(dotnet-arch-entity)",
+      "Skill(dotnet-arch-entity:*)",
+      "Bash(ls:*)",
+      "Bash(dotnet build:*)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(dotnet ef migrations remove:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
